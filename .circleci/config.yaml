@@ -1,0 +1,16 @@
+version: 2
+jobs:
+  init:
+    docker:
+      - image: cimg/base:2020.01
+    steps:
+      - checkout
+      - run: wget https://releases.hashicorp.com/terraform/0.12.24/terraform_0.12.24_linux_amd64.zip
+      - run: unzip terraform_0.12.24_linux_amd64.zip
+  validate:
+    docker:
+      - image: cimg/base:2020.01
+    steps:
+      - run: terraform init -input=false
+      - run: terraform validate
+      - run: terraform fmt -check=true -write=false -diff=true
