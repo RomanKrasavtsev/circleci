@@ -1,16 +1,8 @@
 version: 2.1
 jobs:
-  init:
-    docker:
-      - image: cimg/base:2020.01
+  build:
+    docker: 
+      - image: circleci/node:4.8.2 # the primary container, where your job's commands are run
     steps:
-      - checkout
-      - run: wget https://releases.hashicorp.com/terraform/0.12.24/terraform_0.12.24_linux_amd64.zip
-      - run: unzip terraform_0.12.24_linux_amd64.zip
-  validate:
-    docker:
-      - image: cimg/base:2020.01
-    steps:
-      - run: terraform init -input=false
-      - run: terraform validate
-      - run: terraform fmt -check=true -write=false -diff=true
+      - checkout # check out the code in the project directory
+      - run: echo "hello world" # run the `echo` command
