@@ -65,6 +65,7 @@ jobs:
             terraform fmt
       - *save_repo
 
+  # staging
   staging-plan:
     <<: *default_config
     steps:
@@ -79,38 +80,8 @@ jobs:
             cd ~/project/
             terraform workspace select staging
             terraform plan -out=tfplan -input=false
-  
-  production-plan:
-    <<: *default_config
-    steps:
-      - *restore_repo
-      - *set_aws_environment
-      - *set_terraform_environment
-      - *terraform_init
-      - run:
-          name: terraform plan
-          command: |
-            source $BASH_ENV
-            cd ~/project/
-            terraform workspace select production
-            terraform plan -out=tfplan -input=false
-  
+
   staging-apply:
-    <<: *default_config
-    steps:
-      - *restore_repo
-      - *set_aws_environment
-      - *set_terraform_environment
-      - *terraform_init
-      - run:
-          name: terraform apply
-          command: |
-            source $BASH_ENV
-            cd ~/project/
-            terraform workspace select staging
-            terraform apply -input=false tfplan
-  
-  production-apply:
     <<: *default_config
     steps:
       - *restore_repo
@@ -139,6 +110,37 @@ jobs:
             cd ~/project/
             terraform workspace select staging
             terraform destroy --auto-approve
+
+  # production
+  production-plan:
+    <<: *default_config
+    steps:
+      - *restore_repo
+      - *set_aws_environment
+      - *set_terraform_environment
+      - *terraform_init
+      - run:
+          name: terraform plan
+          command: |
+            source $BASH_ENV
+            cd ~/project/
+            terraform workspace select production
+            terraform plan -out=tfplan -input=false
+  
+  production-apply:
+    <<: *default_config
+    steps:
+      - *restore_repo
+      - *set_aws_environment
+      - *set_terraform_environment
+      - *terraform_init
+      - run:
+          name: terraform apply
+          command: |
+            source $BASH_ENV
+            cd ~/project/
+            terraform workspace select staging
+            terraform apply -input=false tfplan
 
 workflows:
   version: 2
