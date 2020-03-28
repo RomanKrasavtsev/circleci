@@ -13,7 +13,7 @@ jobs:
       - checkout
 
 workflows:
-  version: 2.1
+  version: 2
   one_and_two:
     jobs:
       - build
