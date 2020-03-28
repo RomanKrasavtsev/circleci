@@ -13,6 +13,7 @@ jobs:
     steps:
       - checkout
 
+version: 2
 workflows:
   build_validate:
     jobs:
