@@ -95,12 +95,12 @@ jobs:
 
 workflows:
   version: 2
-  build_plan_approve_apply:
+  init_plan_approve_destroys:
     jobs:
       - init
       - plan:
           requires:
-            - build
+            - init
       - apply:
           type: approval
           requires:
