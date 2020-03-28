@@ -60,11 +60,12 @@ jobs:
       - run:
           name: terraform fmt
           command: |
+            source $BASH_ENV
             terraform validate
             terraform fmt
       - *save_repo
 
-  plan:
+  plan-staging:
     <<: *default_config
     steps:
       - *restore_repo
@@ -76,8 +77,25 @@ jobs:
           command: |
             source $BASH_ENV
             cd ~/project/
+            terraform workspace select staging
             terraform plan -out=tfplan -input=false
-  apply:
+  
+  plan-production:
+    <<: *default_config
+    steps:
+      - *restore_repo
+      - *set_aws_environment
+      - *set_terraform_environment
+      - *terraform_init
+      - run:
+          name: terraform plan
+          command: |
+            source $BASH_ENV
+            cd ~/project/
+            terraform workspace select production
+            terraform plan -out=tfplan -input=false
+  
+  apply-staging:
     <<: *default_config
     steps:
       - *restore_repo
@@ -89,9 +107,25 @@ jobs:
           command: |
             source $BASH_ENV
             cd ~/project/
+            terraform workspace select staging
+            terraform apply -input=false tfplan
+  
+  apply-production:
+    <<: *default_config
+    steps:
+      - *restore_repo
+      - *set_aws_environment
+      - *set_terraform_environment
+      - *terraform_init
+      - run:
+          name: terraform apply
+          command: |
+            source $BASH_ENV
+            cd ~/project/
+            terraform workspace select staging
             terraform apply -input=false tfplan
 
-  destroy:
+  destroy-staging:
     <<: *default_config
     steps:
       - *restore_repo
@@ -103,6 +137,7 @@ jobs:
           command: |
             source $BASH_ENV
             cd ~/project/
+            terraform workspace select staging
             terraform destroy --auto-approve
 
 workflows:
@@ -110,15 +145,23 @@ workflows:
   init_plan_approve_destroys:
     jobs:
       - init
-      - plan:
+      - plan-production:
           type: approval
           requires:
             - init
-      - apply:
+      - plan-staging:
           type: approval
           requires:
-            - plan
-      - destroy:
+            - init
+      - apply-production:
           type: approval
           requires:
-            - apply
+            - plan-production
+      - apply-staging:
+          type: approval
+          requires:
+            - plan-staging
+      - destroy-staging:
+          type: approval
+          requires:
+            - apply-staging
