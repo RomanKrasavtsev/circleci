@@ -142,7 +142,7 @@ jobs:
 
 workflows:
   version: 2
-  init_plan_approve_destroys:
+  init_plan_apply_destroy:
     jobs:
       - init
       - production-plan:
