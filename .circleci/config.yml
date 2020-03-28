@@ -1,24 +1,111 @@
 version: 2
 
+references:
+
+base_image: &base_image hashicorp/terraform:0.12.24
+
+working_directory: &working_directory ~/project
+
+default_config: &default_config
+  docker:
+    - image: *base_image
+  working_directory: *working_directory
+  environment:
+    BASH_ENV: /root/.bashrc
+    TERRAFORM_ENV: ~/project/
+
+repo_cache_key: &repo_cache_key v1-repo-{{ .Branch }}-{{ .Revision }}
+
+restore_repo: &restore_repo
+  restore_cache:
+    key: *repo_cache_key
+
+save_repo: &save_repo
+  save_cache:
+    key: *repo_cache_key
+    paths:
+      - *working_directory
+
+set_terraform_environment: &set_terraform_environment
+  run:
+    name: set terraform environment
+    command: |
+      cd && touch $BASH_ENV
+      cd ~/project/
+
+terraform_init: &terraform_init
+  run:
+    name: terraform init
+    command: |
+      source $BASH_ENV
+      cd ~/project/
+      terraform init -input=false
+
 jobs:
-  build:
-    docker: 
-      - image: cimg/base:2020.01
-    steps:
-      - checkout # check out the code in the project directory
-      - run: echo "hello world" # run the `echo` command
-  validate:
-    docker:
-      - image: cimg/base:2020.01
+  init:
+    <<: *default_config
     steps:
       - checkout
+      - *set_terraform_environment
+      - *terraform_init
+      - run:
+          name: terraform fmt
+          command: |
+            terraform validate
+            terraform fmt
+      - *save_repo
+
+  plan:
+    <<: *default_config
+    steps:
+      - *restore_repo
+      - *set_terraform_environment
+      - *terraform_init
+      - run:
+          name: terraform plan
+          command: |
+            source $BASH_ENV
+            cd ~/project/
+            terraform plan -out=tfplan -input=false
+  apply:
+    <<: *default_config
+    steps:
+      - *restore_repo
+      - *set_terraform_environment
+      - *terraform_init
+      - run:
+          name: terraform apply
+          command: |
+            source $BASH_ENV
+            cd ~/project/
+            terraform apply -input=false tfplan
+
+  destroy:
+    <<: *default_config
+    steps:
+      - *restore_repo
+      - *set_terraform_environment
+      - *terraform_init
+      - run:
+          name: terraform destroy
+          command: |
+            source $BASH_ENV
+            cd ~/project/
+            terraform destroy --auto-approve
 
 workflows:
   version: 2
-  build_validate:
+  build_plan_approve_apply:
     jobs:
-      - build
-      - validate:
-          type: approval
+      - init
+      - plan:
           requires:
             - build
+      - apply:
+          type: approval
+          requires:
+            - plan
+      - destroy:
+          type: approval
+          requires:
+            - apply
