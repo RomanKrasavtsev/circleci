@@ -1,4 +1,5 @@
 version: 2
+
 jobs:
   build:
     docker: 
@@ -11,6 +12,7 @@ jobs:
       - image: cimg/base:2020.01
     steps:
       - checkout
+
 workflows:
   version: 2
   one_and_two:
