@@ -19,5 +19,6 @@ workflows:
     jobs:
       - build
       - validate:
+          type: approval
           requires:
             - build
