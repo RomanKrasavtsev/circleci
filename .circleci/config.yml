@@ -26,7 +26,7 @@ save_repo: &save_repo
     paths:
       - *working_directory
 
-production_set_aws_environment: &set_aws_environment
+production_set_aws_environment: &production_set_aws_environment
   run:
     name: set aws environment
     command: |
