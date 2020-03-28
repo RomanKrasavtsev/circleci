@@ -65,7 +65,7 @@ jobs:
             terraform fmt
       - *save_repo
 
-  plan-staging:
+  staging-plan:
     <<: *default_config
     steps:
       - *restore_repo
@@ -80,7 +80,7 @@ jobs:
             terraform workspace select staging
             terraform plan -out=tfplan -input=false
   
-  plan-production:
+  production-plan:
     <<: *default_config
     steps:
       - *restore_repo
@@ -95,7 +95,7 @@ jobs:
             terraform workspace select production
             terraform plan -out=tfplan -input=false
   
-  apply-staging:
+  staging-apply:
     <<: *default_config
     steps:
       - *restore_repo
@@ -110,7 +110,7 @@ jobs:
             terraform workspace select staging
             terraform apply -input=false tfplan
   
-  apply-production:
+  production-apply:
     <<: *default_config
     steps:
       - *restore_repo
@@ -125,7 +125,7 @@ jobs:
             terraform workspace select staging
             terraform apply -input=false tfplan
 
-  destroy-staging:
+  staging-destroy:
     <<: *default_config
     steps:
       - *restore_repo
@@ -145,23 +145,23 @@ workflows:
   init_plan_approve_destroys:
     jobs:
       - init
-      - plan-production:
+      - production-plan:
           type: approval
           requires:
             - init
-      - plan-staging:
+      - staging-plan:
           type: approval
           requires:
             - init
-      - apply-production:
+      - production-apply:
           type: approval
           requires:
-            - plan-production
-      - apply-staging:
+            - production-plan
+      - staging-apply:
           type: approval
           requires:
-            - plan-staging
-      - destroy-staging:
+            - staging-plan
+      - staging-destroy:
           type: approval
           requires:
-            - apply-staging
+            - staging-apply
