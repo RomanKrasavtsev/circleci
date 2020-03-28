@@ -147,7 +147,11 @@ workflows:
 
   production:
     jobs:
-      - init
+      - init:
+          filters:
+             branches:
+               only:
+                 - master
       - production-hold:
           type: approval
           requires:
