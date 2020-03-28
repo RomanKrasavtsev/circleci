@@ -26,6 +26,15 @@ save_repo: &save_repo
     paths:
       - *working_directory
 
+set_aws_environment: &set_aws_environment
+  run:
+    name: set aws environment
+    command: |
+      mkdir ~/.aws
+      echo "[staging]" > ~/.aws/credentials
+      echo "aws_access_key_id = ${STAGING_AWS_ACCESS_KEY_ID}" >> ~/.aws/credentials
+      echo "aws_secret_access_key = ${STAGING_AWS_SECRET_ACCESS_KEY}" >> ~/.aws/credentials
+
 set_terraform_environment: &set_terraform_environment
   run:
     name: set terraform environment
@@ -59,6 +68,7 @@ jobs:
     <<: *default_config
     steps:
       - *restore_repo
+      - *set_aws_environment
       - *set_terraform_environment
       - *terraform_init
       - run:
@@ -71,6 +81,7 @@ jobs:
     <<: *default_config
     steps:
       - *restore_repo
+      - *set_aws_environment
       - *set_terraform_environment
       - *terraform_init
       - run:
@@ -84,6 +95,7 @@ jobs:
     <<: *default_config
     steps:
       - *restore_repo
+      - *set_aws_environment
       - *set_terraform_environment
       - *terraform_init
       - run:
@@ -99,6 +111,7 @@ workflows:
     jobs:
       - init
       - plan:
+          type: approval
           requires:
             - init
       - apply:
